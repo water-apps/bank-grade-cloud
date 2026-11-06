@@ -1,0 +1,20 @@
+{
+  "source": "aws-config:s3-bucket-level-public-access-prohibited",
+  "period": "2026-Q3",
+  "collected_at": "2026-10-01T02:00:05Z",
+  "collector": "arn:aws:iam::111111111111:role/evidence-collector",
+  "result": "compliant_with_exceptions",
+  "scope": {
+    "buckets_checked": 1873,
+    "non_compliant": 1,
+    "non_compliant_with_exception": 1
+  },
+  "records": [
+    {
+      "resource": "arn:aws:s3:::marketing-public-images",
+      "account": "222222222222",
+      "status": "non_compliant",
+      "exception": "EX-0007"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Chapter 9: self-heal reverses manual changes; prune removes what Git no longer has.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payments-api
+  namespace: argocd
+spec:
+  project: payments-prod
+  source:
+    repoURL: https://git.bank.example/payments/deploy.git
+    targetRevision: main
+    path: apps/payments-api/prod
+  destination:
+    server: https://payments-prod.internal
+    namespace: payments-api
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true

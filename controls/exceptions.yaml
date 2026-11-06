@@ -1,0 +1,13 @@
+# Approved exceptions (Chapter 3). Each one names its control, approval,
+# compensating controls and an expiry no more than twelve months away.
+- control: DATA-01.3
+  resource: arn:aws:s3:::marketing-public-images
+  account: "222222222222"
+  reason: Public website images, no customer or internal data
+  compensating: Bucket holds only files published by the marketing pipeline; daily scan for non-image files
+  requested_by: Marketing web team
+  approved_by: Head of Information Security
+  risk_reference: RA-2026-014
+  implemented_as: exemption tag exception-id=EX-0007
+  approved: 2026-03-02
+  expires: 2027-03-01

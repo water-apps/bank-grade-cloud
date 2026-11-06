@@ -1,0 +1,18 @@
+# Chapter 9: the production project only deploys from the production repo,
+# only to production namespaces, and never during the end-of-year freeze.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: payments-prod
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://git.bank.example/payments/deploy.git
+  destinations:
+    - server: https://payments-prod.internal
+      namespace: "payments-*"
+  syncWindows:
+    - kind: deny
+      schedule: "0 18 20 12 *"
+      duration: 360h
+      applications: ["*"]

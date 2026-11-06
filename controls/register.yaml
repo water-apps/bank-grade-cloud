@@ -1,0 +1,275 @@
+# Control register (Chapter 3, Appendix A). One entry per control. Each
+# assertion names its three layers and the evidence source that proves it.
+# Paths are relative to the repository root; "n/a" means no layer of that kind.
+
+- id: ACC-01
+  statement: Every account is vended through the pipeline with owner, criticality, data class and critical operation.
+  supports: [CPS 234 asset classification, CPS 230 critical operations]
+  owner: platform-team
+  chapter: 4
+  assertions:
+    - id: ACC-01.1
+      text: Every account carries the four required tags
+      prevent: modules/account-vending/main.tf
+      detect: aws-config/required-tags
+      test: policy/account_tags.rego
+      source: inventory:account-tags
+
+- id: ACC-02
+  statement: Resources are created only in approved regions.
+  supports: [CPS 230 offshoring decisions]
+  owner: platform-team
+  chapter: 4
+  assertions:
+    - id: ACC-02.1
+      text: Requests outside approved regions are denied
+      prevent: policies/scp/approved-regions.json
+      detect: aws-config/resources-outside-approved-regions
+      test: n/a
+      source: aws-config:approved-regions
+
+- id: DATA-01
+  statement: Customer data must not be accessible from the public internet.
+  supports: [CPS 234 controls, CPG 235 data protection]
+  owner: platform-team
+  chapter: 3
+  assertions:
+    - id: DATA-01.1
+      text: S3 Block Public Access is on at account level
+      prevent: modules/account-baseline/s3.tf
+      detect: aws-config/s3-account-level-public-access-blocks-periodic
+      test: policy/s3_public_access.rego
+      source: aws-config:s3-account-level-public-access-blocks-periodic
+    - id: DATA-01.2
+      text: Only the guardrail role can change the account-level setting
+      prevent: policies/scp/protect-s3-public-access-block.json
+      detect: cloudtrail/PutAccountPublicAccessBlock
+      test: n/a
+      source: cloudtrail:PutAccountPublicAccessBlock
+    - id: DATA-01.3
+      text: No bucket grants access to anonymous principals
+      prevent: policy/s3_public_access.rego
+      detect: aws-config/s3-bucket-level-public-access-prohibited
+      test: policy/s3_public_access.rego
+      source: aws-config:s3-bucket-level-public-access-prohibited
+
+- id: NET-01
+  statement: Workload networks connect only through the hub.
+  supports: [CPS 234 controls]
+  owner: network-team
+  chapter: 5
+  assertions:
+    - id: NET-01.1
+      text: No internet gateways or peering in workload accounts
+      prevent: policies/scp/no-internet-gateways.json
+      detect: network-access-analyzer/internet-to-data
+      test: n/a
+      source: network-access-analyzer:internet-to-data
+
+- id: NET-02
+  statement: Egress is default-deny with an allowlist.
+  supports: [CPS 234 controls]
+  owner: network-team
+  chapter: 5
+  assertions:
+    - id: NET-02.1
+      text: Egress firewall default action is drop
+      prevent: firewall policy (network repository)
+      detect: firewall logs
+      test: n/a
+      source: firewall:default-action
+
+- id: IAM-01
+  statement: No IAM users or long-lived access keys.
+  supports: [CPS 234 controls]
+  owner: identity-team
+  chapter: 6
+  assertions:
+    - id: IAM-01.1
+      text: IAM users and access keys can't be created
+      prevent: policies/scp/no-iam-users.json
+      detect: iam/credential-report
+      test: n/a
+      source: iam:credential-report
+
+- id: IAM-02
+  statement: No standing human write access to production.
+  supports: [CPS 234 controls]
+  owner: identity-team
+  chapter: 6
+  assertions:
+    - id: IAM-02.1
+      text: Production write access is just-in-time, approved and time-limited
+      prevent: elevation tool configuration
+      detect: cloudtrail/elevated-sessions
+      test: n/a
+      source: elevation:records
+
+- id: IAM-03
+  statement: Production access is reviewed quarterly by owners.
+  supports: [CPS 234 controls]
+  owner: identity-team
+  chapter: 6
+  assertions:
+    - id: IAM-03.1
+      text: Every production account has a signed review for the quarter
+      prevent: tools/access_review/access_review.py
+      detect: unreviewed access report
+      test: n/a
+      source: access-review:signed
+
+- id: KEY-01
+  statement: Customer-managed keys rotate and separate administration from use.
+  supports: [CPS 234 controls]
+  owner: platform-team
+  chapter: 7
+  assertions:
+    - id: KEY-01.1
+      text: Key administrators can't decrypt and key users can't administer
+      prevent: modules/kms-key/main.tf
+      detect: aws-config/cmk-backing-key-rotation-enabled
+      test: policy/kms_key_policy.rego
+      source: aws-config:cmk-backing-key-rotation-enabled
+
+- id: SEC-01
+  statement: No secrets in source code.
+  supports: [CPS 234 controls]
+  owner: security-team
+  chapter: 7
+  assertions:
+    - id: SEC-01.1
+      text: Pushes containing secrets are blocked
+      prevent: git platform push protection
+      detect: scheduled repository scan
+      test: pipeline secret scanner
+      source: secret-scanning:results
+
+- id: CERT-01
+  statement: No certificate expires unseen.
+  supports: [CPS 230 operational risk]
+  owner: platform-team
+  chapter: 7
+  assertions:
+    - id: CERT-01.1
+      text: Every certificate has an owner and alerts 30 days before expiry
+      prevent: cert-manager and ACM automatic renewal
+      detect: weekly certificate scan
+      test: n/a
+      source: certificates:inventory
+
+- id: K8S-01
+  statement: Clusters have private API endpoints and restricted pods.
+  supports: [CPS 234 controls]
+  owner: platform-team
+  chapter: 8
+  assertions:
+    - id: K8S-01.1
+      text: Namespaces carry owner labels and run under restricted pod security
+      prevent: k8s/kyverno/require-namespace-owner.yaml
+      detect: kyverno policy reports
+      test: n/a
+      source: kyverno:policy-reports
+
+- id: K8S-02
+  statement: Only signed images from the internal registry run.
+  supports: [CPS 234 controls]
+  owner: platform-team
+  chapter: 8
+  assertions:
+    - id: K8S-02.1
+      text: Pods may only use images from the internal registry
+      prevent: k8s/kyverno/internal-registry-only.yaml
+      detect: kyverno policy reports
+      test: n/a
+      source: kyverno:internal-registry-only
+
+- id: CHG-01
+  statement: Production changes only through reviewed, merged pull requests.
+  supports: [CPS 234 controls, change management]
+  owner: platform-team
+  chapter: 9
+  assertions:
+    - id: CHG-01.1
+      text: Production deploys only from the production repository, with self-heal on
+      prevent: k8s/argocd/appproject-payments-prod.yaml
+      detect: gitops drift events
+      test: branch protection required checks
+      source: gitops:drift-events
+
+- id: LOG-01
+  statement: Audit logs are central, immutable and kept for the records period.
+  supports: [CPS 234 incident management, records policy]
+  owner: security-team
+  chapter: 11
+  assertions:
+    - id: LOG-01.1
+      text: The log archive uses Object Lock in compliance mode
+      prevent: modules/log-archive/main.tf
+      detect: archive configuration check
+      test: policy/protected_controls.rego
+      source: log-archive:configuration
+
+- id: MON-01
+  statement: Critical operations have staged alerts tied to tolerance.
+  supports: [CPS 230 tolerance levels and notification]
+  owner: platform-team
+  chapter: 11
+  assertions:
+    - id: MON-01.1
+      text: Every critical operation has detect, escalate, prepare and notify alerts
+      prevent: alert definitions in code
+      detect: alert delivery tests
+      test: n/a
+      source: alerting:coverage
+
+- id: BCK-01
+  statement: Backups are copied to a locked vault under separate administration.
+  supports: [CPS 230 business continuity]
+  owner: platform-team
+  chapter: 12
+  assertions:
+    - id: BCK-01.1
+      text: The central vault is locked in compliance mode
+      prevent: modules/backup-vault/main.tf
+      detect: backup job reports
+      test: policy/protected_controls.rego
+      source: backup:vault-configuration
+
+- id: BCK-02
+  statement: Restores are tested monthly and timed against RTO.
+  supports: [CPS 230 business continuity testing]
+  owner: platform-team
+  chapter: 12
+  assertions:
+    - id: BCK-02.1
+      text: Each critical data store had a timed restore test every month
+      prevent: AWS Backup restore testing plan
+      detect: failed restore test alerts
+      test: n/a
+      source: backup:restore-tests
+
+- id: SUP-01
+  statement: Every external artefact enters through recorded intake.
+  supports: [CPS 234 controls, third-party risk]
+  owner: platform-team
+  chapter: 13
+  assertions:
+    - id: SUP-01.1
+      text: Every artefact in the internal registry has an intake record
+      prevent: mirror-only registries
+      detect: admission reports
+      test: intake pipeline checks
+      source: intake:log
+
+- id: COST-01
+  statement: Cost changes can't disable protected controls.
+  supports: [All of the above]
+  owner: platform-team
+  chapter: 14
+  assertions:
+    - id: COST-01.1
+      text: Pull requests deleting protected controls fail
+      prevent: policy/protected_controls.rego
+      detect: config and policy coverage report
+      test: policy/protected_controls.rego
+      source: pipeline:protected-controls

@@ -1,0 +1,7 @@
+# Control DATA-01.1: S3 Block Public Access is on at account level (Chapter 3).
+resource "aws_s3_account_public_access_block" "this" {
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}

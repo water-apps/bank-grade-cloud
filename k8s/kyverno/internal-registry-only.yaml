@@ -1,0 +1,22 @@
+# K8S-02 (Chapter 8): only images from the internal registry are admitted.
+# Newer Kyverno releases also accept failureAction on each rule; the
+# spec-level field below still works.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: internal-registry-only
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: internal-registry-only
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: "Images must come from registry.bank.example"
+        pattern:
+          spec:
+            containers:
+              - image: "registry.bank.example/*"

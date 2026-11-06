@@ -1,0 +1,15 @@
+# Chapter 9: Flux refuses commits not signed by a trusted key.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: payments-prod
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://git.bank.example/payments/deploy.git
+  ref:
+    branch: main
+  verify:
+    mode: HEAD
+    secretRef:
+      name: trusted-signers

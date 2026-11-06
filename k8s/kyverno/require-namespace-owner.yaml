@@ -1,0 +1,22 @@
+# Chapter 8: every namespace carries owner, criticality and critical operation.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-namespace-owner
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-labels
+      match:
+        any:
+          - resources:
+              kinds: [Namespace]
+      validate:
+        message: "Namespaces need owner, criticality and critical-op labels"
+        pattern:
+          metadata:
+            labels:
+              owner: "?*"
+              criticality: "critical | high | medium | low"
+              critical-op: "?*"
