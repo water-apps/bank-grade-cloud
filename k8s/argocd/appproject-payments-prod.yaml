@@ -1,5 +1,7 @@
 # Chapter 9: the production project only deploys from the production repo,
-# only to production namespaces, and never during the end-of-year freeze.
+# only to production namespaces, and never during the end-of-year freeze
+# (20 Dec, 6pm Sydney time, for 15 days). Without timeZone the schedule is UTC.
+# A deny window also pauses self-heal while it is open.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
@@ -15,4 +17,5 @@ spec:
     - kind: deny
       schedule: "0 18 20 12 *"
       duration: 360h
+      timeZone: Australia/Sydney
       applications: ["*"]

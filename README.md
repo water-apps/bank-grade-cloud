@@ -57,6 +57,10 @@ conftest test plan.json --policy policy/
 - **Test service control policies on a staging OU first.** The region policy exempts global services. Check its list against the AWS documentation for the services you use.
 - **Check the mapping to the standards.** How APRA's standards apply to your organisation is for your risk and compliance team to decide. This code helps you build what they can say yes to. It is not compliance advice.
 
+## Editions
+
+Each edition of the book has a matching tag in this repository, starting with `first-edition`. Use the tag that matches your copy; `main` keeps moving.
+
 ## Licence
 
 MIT. Copyright (c) 2026 Water Apps Pty Ltd. See `LICENSE`.

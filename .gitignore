@@ -4,5 +4,5 @@
 *.tfplan
 plan.json
 __pycache__/
-evidence/
-reviews/
+/evidence/
+/reviews/

@@ -1,10 +1,13 @@
 # Control register (Chapter 3, Appendix A). One entry per control. Each
 # assertion names its three layers and the evidence source that proves it.
 # Paths are relative to the repository root; "n/a" means no layer of that kind.
+# "supports" cites the paragraph of the standard a control helps meet. Any
+# frequency, period or expiry in a control is this book's design choice, not a
+# requirement of the standard. Confirm the mapping with your risk team.
 
 - id: ACC-01
   statement: Every account is vended through the pipeline with owner, criticality, data class and critical operation.
-  supports: [CPS 234 asset classification, CPS 230 critical operations]
+  supports: [CPS 234 para 20, CPS 230 para 35]
   owner: platform-team
   chapter: 4
   assertions:
@@ -17,7 +20,7 @@
 
 - id: ACC-02
   statement: Resources are created only in approved regions.
-  supports: [CPS 230 offshoring decisions]
+  supports: [CPS 230 para 59(b) (covers data only; offshore personnel are handled in identity)]
   owner: platform-team
   chapter: 4
   assertions:
@@ -30,7 +33,7 @@
 
 - id: DATA-01
   statement: Customer data must not be accessible from the public internet.
-  supports: [CPS 234 controls, CPG 235 data protection]
+  supports: [CPS 234 para 21, CPG 235 (guidance)]
   owner: platform-team
   chapter: 3
   assertions:
@@ -55,7 +58,7 @@
 
 - id: NET-01
   statement: Workload networks connect only through the hub.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: network-team
   chapter: 5
   assertions:
@@ -68,7 +71,7 @@
 
 - id: NET-02
   statement: Egress is default-deny with an allowlist.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: network-team
   chapter: 5
   assertions:
@@ -81,7 +84,7 @@
 
 - id: IAM-01
   statement: No IAM users or long-lived access keys.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: identity-team
   chapter: 6
   assertions:
@@ -94,7 +97,7 @@
 
 - id: IAM-02
   statement: No standing human write access to production.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: identity-team
   chapter: 6
   assertions:
@@ -107,7 +110,7 @@
 
 - id: IAM-03
   statement: Production access is reviewed quarterly by owners.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: identity-team
   chapter: 6
   assertions:
@@ -120,7 +123,7 @@
 
 - id: KEY-01
   statement: Customer-managed keys rotate and separate administration from use.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: platform-team
   chapter: 7
   assertions:
@@ -133,7 +136,7 @@
 
 - id: SEC-01
   statement: No secrets in source code.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: security-team
   chapter: 7
   assertions:
@@ -146,7 +149,7 @@
 
 - id: CERT-01
   statement: No certificate expires unseen.
-  supports: [CPS 230 operational risk]
+  supports: [CPS 230 operational risk management]
   owner: platform-team
   chapter: 7
   assertions:
@@ -159,7 +162,7 @@
 
 - id: K8S-01
   statement: Clusters have private API endpoints and restricted pods.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: platform-team
   chapter: 8
   assertions:
@@ -172,7 +175,7 @@
 
 - id: K8S-02
   statement: Only signed images from the internal registry run.
-  supports: [CPS 234 controls]
+  supports: [CPS 234 para 21]
   owner: platform-team
   chapter: 8
   assertions:
@@ -185,7 +188,7 @@
 
 - id: CHG-01
   statement: Production changes only through reviewed, merged pull requests.
-  supports: [CPS 234 controls, change management]
+  supports: [CPS 234 para 21]
   owner: platform-team
   chapter: 9
   assertions:
@@ -198,7 +201,7 @@
 
 - id: LOG-01
   statement: Audit logs are central, immutable and kept for the records period.
-  supports: [CPS 234 incident management, records policy]
+  supports: [CPS 234 paras 23-26, records policy]
   owner: security-team
   chapter: 11
   assertions:
@@ -211,7 +214,7 @@
 
 - id: MON-01
   statement: Critical operations have staged alerts tied to tolerance.
-  supports: [CPS 230 tolerance levels and notification]
+  supports: [CPS 230 paras 33, 38 and 42]
   owner: platform-team
   chapter: 11
   assertions:
@@ -224,7 +227,7 @@
 
 - id: BCK-01
   statement: Backups are copied to a locked vault under separate administration.
-  supports: [CPS 230 business continuity]
+  supports: [CPS 230 paras 38-44]
   owner: platform-team
   chapter: 12
   assertions:
@@ -237,7 +240,7 @@
 
 - id: BCK-02
   statement: Restores are tested monthly and timed against RTO.
-  supports: [CPS 230 business continuity testing]
+  supports: [CPS 230 paras 43-44 (monthly is this book's choice)]
   owner: platform-team
   chapter: 12
   assertions:
@@ -250,7 +253,7 @@
 
 - id: SUP-01
   statement: Every external artefact enters through recorded intake.
-  supports: [CPS 234 controls, third-party risk]
+  supports: [CPS 234 paras 16 and 21]
   owner: platform-team
   chapter: 13
   assertions:
@@ -269,7 +272,7 @@
   assertions:
     - id: COST-01.1
       text: Pull requests deleting protected controls fail
-      prevent: policy/protected_controls.rego
+      prevent: policies/scp/protect-evidence-controls.json
       detect: config and policy coverage report
       test: policy/protected_controls.rego
       source: pipeline:protected-controls

@@ -13,6 +13,21 @@ test_s3_public_access_pass if {
   count(deny) == 0 with input as {"resource_changes": [pab("aws_s3_bucket_public_access_block.ok", true)]}
 }
 
+account_pab(v, actions) := {"address": "module.baseline.aws_s3_account_public_access_block.this", "type": "aws_s3_account_public_access_block",
+  "change": {"actions": actions, "after": {"block_public_acls": true, "block_public_policy": true, "ignore_public_acls": v, "restrict_public_buckets": true}}}
+
+test_account_level_pass if {
+  count(deny) == 0 with input as {"resource_changes": [account_pab(true, ["create"])]}
+}
+
+test_account_level_setting_off_fails if {
+  deny["module.baseline.aws_s3_account_public_access_block.this: ignore_public_acls must be true"] with input as {"resource_changes": [account_pab(false, ["update"])]}
+}
+
+test_account_level_delete_fails if {
+  deny["module.baseline.aws_s3_account_public_access_block.this: the account-level public access block can't be removed"] with input as {"resource_changes": [{"address": "module.baseline.aws_s3_account_public_access_block.this", "type": "aws_s3_account_public_access_block", "change": {"actions": ["delete"], "after": null}}]}
+}
+
 test_s3_public_access_fail if {
   deny["aws_s3_bucket_public_access_block.bad: block_public_policy must be true"] with input as {"resource_changes": [pab("aws_s3_bucket_public_access_block.bad", false)]}
 }
@@ -21,8 +36,18 @@ test_protected_delete_fails if {
   count(deny) == 1 with input as {"resource_changes": [{"address": "aws_cloudtrail.org", "type": "aws_cloudtrail", "change": {"actions": ["delete"], "after": null}}]}
 }
 
-test_protected_update_passes if {
-  count(deny) == 0 with input as {"resource_changes": [{"address": "aws_cloudtrail.org", "type": "aws_cloudtrail", "change": {"actions": ["update"], "after": {}}}]}
+trail(after) := {"address": "aws_cloudtrail.org", "type": "aws_cloudtrail", "change": {"actions": ["update"], "after": after}}
+
+test_trail_benign_update_passes if {
+  count(deny) == 0 with input as {"resource_changes": [trail({"enable_logging": true, "enable_log_file_validation": true, "is_multi_region_trail": true, "name": "org-trail"})]}
+}
+
+test_trail_logging_off_fails if {
+  deny["aws_cloudtrail.org: enable_logging must stay true"] with input as {"resource_changes": [trail({"enable_logging": false, "enable_log_file_validation": true, "is_multi_region_trail": true})]}
+}
+
+test_trail_validation_off_fails if {
+  deny["aws_cloudtrail.org: enable_log_file_validation must stay true"] with input as {"resource_changes": [trail({"enable_logging": true, "enable_log_file_validation": false, "is_multi_region_trail": true})]}
 }
 
 test_config_disable_fails if {
